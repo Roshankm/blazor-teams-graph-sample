@@ -1,0 +1,64 @@
+@page "/meetings/find"
+@inject ITeamsMeetingService Meetings
+@inject NavigationManager Nav
+
+<PageTitle>Find meeting</PageTitle>
+
+<h1>Find a meeting</h1>
+<p class="text-muted">
+    Paste the "Join the meeting now" link from a Teams invite. Microsoft Graph cannot list all of a user's
+    online meetings, so the join link is how an existing meeting is looked up.
+</p>
+
+<EditForm Model="Form" FormName="find-meeting" OnSubmit="FindAsync" class="col-lg-8">
+    @if (_error is not null)
+    {
+        <div class="alert alert-warning">@_error</div>
+    }
+    <div class="input-group">
+        <InputText class="form-control" placeholder="https://teams.microsoft.com/l/meetup-join/..." @bind-Value="Form!.JoinUrl" />
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Find</button>
+    </div>
+</EditForm>
+
+@code {
+    private string? _error;
+
+    [SupplyParameterFromForm]
+    private FindForm? Form { get; set; }
+
+    protected override void OnInitialized() => Form ??= new FindForm();
+
+    private async Task FindAsync()
+    {
+        if (!MeetingScheduler.IsTeamsJoinUrl(Form!.JoinUrl))
+        {
+            _error = "That doesn't look like a Teams meeting link.";
+            return;
+        }
+
+        MeetingDto? meeting;
+        try
+        {
+            meeting = await Meetings.FindByJoinUrlAsync(Form.JoinUrl!, CancellationToken.None);
+        }
+        catch (TeamsMeetingException ex)
+        {
+            _error = ex.Message;
+            return;
+        }
+
+        if (meeting is null)
+        {
+            _error = "No meeting with that link was found. Only meetings you organised can be looked up.";
+            return;
+        }
+
+        Nav.NavigateTo($"meetings/{Uri.EscapeDataString(meeting.Id)}");
+    }
+
+    private sealed class FindForm
+    {
+        public string? JoinUrl { get; set; }
+    }
+}

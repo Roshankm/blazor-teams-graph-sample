@@ -1,0 +1,101 @@
+@page "/meetings/new"
+@inject ITeamsMeetingService Meetings
+@inject AppMode Mode
+@inject TimeProvider Time
+@inject NavigationManager Nav
+
+<PageTitle>New meeting</PageTitle>
+
+<h1>New Teams meeting</h1>
+
+<EditForm Model="Request" FormName="new-meeting" OnSubmit="CreateAsync" class="col-lg-7">
+    @if (_errors.Count > 0)
+    {
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach (var error in _errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label" for="subject">Subject</label>
+        <InputText id="subject" class="form-control" @bind-Value="Request!.Subject" />
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-sm-5">
+            <label class="form-label" for="start">Start</label>
+            <InputDate id="start" Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="Request!.StartLocal" />
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label" for="duration">Minutes</label>
+            <InputNumber id="duration" class="form-control" @bind-Value="Request!.DurationMinutes" />
+        </div>
+        <div class="col-sm-4">
+            <label class="form-label" for="zone">Time zone</label>
+            <InputSelect id="zone" class="form-select" @bind-Value="Request!.TimeZoneId">
+                @foreach (var zone in TimeZones)
+                {
+                    <option value="@zone">@zone</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <InputCheckbox id="lobby" class="form-check-input" @bind-Value="Request!.EveryoneBypassesLobby" />
+        <label class="form-check-label" for="lobby">Let external guests skip the lobby</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary"><i class="bi bi-calendar-plus"></i> Create meeting</button>
+</EditForm>
+
+@code {
+    private static readonly string[] TimeZones =
+        ["Asia/Dubai", "Asia/Kolkata", "Europe/London", "America/New_York", "Australia/Sydney", "UTC"];
+
+    private List<string> _errors = [];
+
+    [SupplyParameterFromForm]
+    private CreateMeetingRequest? Request { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // First visit (GET): suggest the next half hour in the default time zone.
+        Request ??= NewDefaultRequest();
+    }
+
+    private async Task CreateAsync()
+    {
+        _errors = MeetingScheduler.Validate(Request!, Time.GetUtcNow()).ToList();
+        if (_errors.Count > 0)
+        {
+            return;
+        }
+
+        MeetingDto meeting;
+        try
+        {
+            meeting = await Meetings.CreateMeetingAsync(Request!, CancellationToken.None);
+        }
+        catch (TeamsMeetingException ex)
+        {
+            _errors = [ex.Message];
+            return;
+        }
+
+        Nav.NavigateTo($"meetings/{Uri.EscapeDataString(meeting.Id)}?created=true");
+    }
+
+    private CreateMeetingRequest NewDefaultRequest()
+    {
+        MeetingScheduler.TryFindTimeZone(Mode.DefaultTimeZone, out var zone);
+        var local = TimeZoneInfo.ConvertTime(Time.GetUtcNow(), zone).DateTime;
+        var nextHalfHour = local.Date.AddMinutes(Math.Ceiling(local.TimeOfDay.TotalMinutes / 30) * 30 + 30);
+        return new CreateMeetingRequest { StartLocal = nextHalfHour, TimeZoneId = zone.Id, Subject = string.Empty };
+    }
+}

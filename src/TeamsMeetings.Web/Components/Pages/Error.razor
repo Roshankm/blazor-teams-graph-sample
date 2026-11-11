@@ -1,0 +1,19 @@
+@page "/error"
+@attribute [AllowAnonymous]
+@using System.Diagnostics
+
+<PageTitle>Error</PageTitle>
+
+<h1 class="text-danger">Something went wrong.</h1>
+<p>An error occurred while processing your request.</p>
+@if (!string.IsNullOrEmpty(RequestId))
+{
+    <p class="small text-muted">Request ID: <code>@RequestId</code></p>
+}
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId => Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

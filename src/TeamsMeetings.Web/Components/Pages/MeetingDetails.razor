@@ -1,0 +1,115 @@
+@page "/meetings/{MeetingId}"
+@inject ITeamsMeetingService Meetings
+@inject AppMode Mode
+
+<PageTitle>@(_meeting?.Subject ?? "Meeting")</PageTitle>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_meeting is null)
+{
+    <h1>Meeting not found</h1>
+    <p><a href="meetings/find">Look up a meeting by its join link</a>.</p>
+}
+else
+{
+    @if (Created)
+    {
+        <div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> Meeting created. Share the join link below.</div>
+    }
+
+    <h1>@_meeting.Subject</h1>
+    <p class="text-muted">
+        @Format(_meeting.StartUtc) &ndash; @TimeZoneInfo.ConvertTime(_meeting.EndUtc, _zone).ToString("HH:mm") (@_zone.Id)
+    </p>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <label class="form-label" for="join">Join link</label>
+            <div class="input-group mb-3">
+                <input id="join" class="form-control" readonly value="@_meeting.JoinUrl" />
+                <a class="btn btn-primary" href="@_meeting.JoinUrl" target="_blank" rel="noopener">
+                    <i class="bi bi-box-arrow-up-right"></i> Join in Teams
+                </a>
+            </div>
+            @if (_meeting.DialInNumber is not null)
+            {
+                <p class="mb-0 small">Dial-in: @_meeting.DialInNumber, conference ID @_meeting.ConferenceId</p>
+            }
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <h2 class="h5"><i class="bi bi-film"></i> Recordings</h2>
+            @if (_artifacts.Recordings.Count == 0)
+            {
+                <p class="text-muted small">No recordings yet. They appear a few minutes after a recorded meeting ends.</p>
+            }
+            <ul class="list-group">
+                @foreach (var r in _artifacts.Recordings)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @Format(r.CreatedUtc)
+                        <a class="btn btn-sm btn-outline-primary" href="@ContentLink("recordings", r.Id)">Download</a>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2 class="h5"><i class="bi bi-card-text"></i> Transcripts</h2>
+            @if (_artifacts.Transcripts.Count == 0)
+            {
+                <p class="text-muted small">No transcripts yet.</p>
+            }
+            <ul class="list-group">
+                @foreach (var t in _artifacts.Transcripts)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @Format(t.CreatedUtc)
+                        <a class="btn btn-sm btn-outline-primary" href="@ContentLink("transcripts", t.Id)">Download .vtt</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    private MeetingDto? _meeting;
+    private MeetingArtifacts _artifacts = new([], []);
+    private string? _error;
+    private TimeZoneInfo _zone = TimeZoneInfo.Utc;
+
+    [Parameter]
+    public string MeetingId { get; set; } = string.Empty;
+
+    [SupplyParameterFromQuery]
+    public bool Created { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        MeetingScheduler.TryFindTimeZone(Mode.DefaultTimeZone, out _zone);
+
+        try
+        {
+            _meeting = await Meetings.GetMeetingAsync(MeetingId, CancellationToken.None);
+            if (_meeting is not null)
+            {
+                _artifacts = await Meetings.GetArtifactsAsync(MeetingId, CancellationToken.None);
+            }
+        }
+        catch (TeamsMeetingException ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private string Format(DateTimeOffset? value) =>
+        value is { } v ? TimeZoneInfo.ConvertTime(v, _zone).ToString("ddd d MMM yyyy, HH:mm") : "-";
+
+    private string ContentLink(string kind, string id) =>
+        $"meetings/{Uri.EscapeDataString(MeetingId)}/{kind}/{Uri.EscapeDataString(id)}/content";
+}

@@ -1,0 +1,15 @@
+html, body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.bg-teams {
+    background-color: #464eb8;
+}
+
+h1:focus {
+    outline: none;
+}
+
+.card {
+    border-radius: .75rem;
+}

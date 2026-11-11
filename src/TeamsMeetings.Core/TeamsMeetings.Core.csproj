@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Models, validation and the service contract. No Graph or ASP.NET Core dependencies. -->
+</Project>

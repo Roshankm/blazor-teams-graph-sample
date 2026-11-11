@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TeamsMeetings.Core/TeamsMeetings.Core.csproj" />
+    <Project Path="src/TeamsMeetings.Graph/TeamsMeetings.Graph.csproj" />
+    <Project Path="src/TeamsMeetings.Web/TeamsMeetings.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TeamsMeetings.Tests/TeamsMeetings.Tests.csproj" />
+  </Folder>
+</Solution>

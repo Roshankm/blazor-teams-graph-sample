@@ -1,0 +1,49 @@
+@page "/"
+@attribute [AllowAnonymous]
+@inject AppMode Mode
+
+<PageTitle>Teams Meetings with Microsoft Graph</PageTitle>
+
+<h1>Teams meetings from Blazor</h1>
+<p class="lead">
+    Create Microsoft Teams meetings, share join links and download recordings and transcripts,
+    all through Microsoft Graph on behalf of the signed-in user.
+</p>
+
+@if (!Mode.UsesGraph)
+{
+    <div class="alert alert-warning">
+        <strong>Demo mode.</strong> No Entra ID app registration is configured, so the app uses in-memory data.
+        Add <code>AzureAd</code> settings (see the README) to call the real Microsoft Graph.
+        Try <a href="meetings/@DemoTeamsMeetingService.SeededMeetingId">the seeded meeting</a>, which has a recording and a transcript.
+    </div>
+}
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5"><i class="bi bi-calendar-plus"></i> Create</h2>
+                <p class="card-text">Schedule a meeting in any time zone and get a join link instantly.</p>
+                <a class="btn btn-primary" href="meetings/new">New meeting</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5"><i class="bi bi-box-arrow-in-right"></i> Join</h2>
+                <p class="card-text">Open any meeting in the Teams app or browser from its details page.</p>
+                <a class="btn btn-outline-primary" href="meetings/find">Find by join link</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5"><i class="bi bi-film"></i> Recordings</h2>
+                <p class="card-text">List and download recordings (MP4) and transcripts (VTT) of meetings you organised.</p>
+            </div>
+        </div>
+    </div>
+</div>

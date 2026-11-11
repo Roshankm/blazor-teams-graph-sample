@@ -1,0 +1,36 @@
+@inherits LayoutComponentBase
+@inject AppMode Mode
+
+<nav class="navbar navbar-expand navbar-dark bg-teams mb-4">
+    <div class="container">
+        <a class="navbar-brand" href=""><i class="bi bi-camera-video-fill"></i> Teams Meetings</a>
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item"><NavLink class="nav-link" href="meetings/new">New meeting</NavLink></li>
+            <li class="nav-item"><NavLink class="nav-link" href="meetings/find">Find meeting</NavLink></li>
+        </ul>
+        <span class="navbar-text small">
+            @if (!Mode.UsesGraph)
+            {
+                <span class="badge text-bg-warning">Demo mode</span>
+            }
+            else if (HttpContext?.User.Identity?.IsAuthenticated == true)
+            {
+                <i class="bi bi-person-circle"></i> @HttpContext.User.Identity.Name
+                <a class="link-light ms-2" href="MicrosoftIdentity/Account/SignOut">Sign out</a>
+            }
+            else
+            {
+                <a class="link-light" href="MicrosoftIdentity/Account/SignIn">Sign in</a>
+            }
+        </span>
+    </div>
+</nav>
+
+<main class="container pb-5">
+    @Body
+</main>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+}

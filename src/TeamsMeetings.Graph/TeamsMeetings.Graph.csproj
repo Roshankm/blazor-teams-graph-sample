@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Graph" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TeamsMeetings.Core\TeamsMeetings.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TeamsMeetings.Tests" />
+  </ItemGroup>
+
+</Project>

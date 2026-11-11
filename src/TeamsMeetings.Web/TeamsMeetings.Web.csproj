@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>teams-meetings-graph-sample</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Identity.Web" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" />
+    <PackageReference Include="Microsoft.Identity.Web.GraphServiceClient" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TeamsMeetings.Core\TeamsMeetings.Core.csproj" />
+    <ProjectReference Include="..\TeamsMeetings.Graph\TeamsMeetings.Graph.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TeamsMeetings.Tests" />
+  </ItemGroup>
+
+</Project>
